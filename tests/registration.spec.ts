@@ -1,114 +1,80 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { RegistrationPage } from '../pageObjects/RegistrationPage';
 
 test('User can register successfully', async ({ page }) => {
-    // Navigate to the website
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Sign up' }).click();
+    const registration = new RegistrationPage(page);
     
-    // Fill in the registration form
-    await page.locator('input[name="name"]').fill('Iryna');
-    await page.locator('input[name="lastName"]').fill('Test');
+    await registration.navigate();
+    await registration.openRegistrationForm();
     
-    // Generate a unique email
     const email = `aqa-iryna+${Date.now()}@gmail.com`;
-    await page.locator('input[name="email"]').fill(email);
+    await registration.fillRegistrationForm('Iryna', 'Test', email, 'Test1234', 'Test1234');
     
-    // Fill in the password fields
-    await page.locator('input[name="password"]').fill('Test1234');
-    await page.locator('input[name="repeatPassword"]').fill('Test1234');
-    
-    // Click the Register button
-    await page.getByRole('button', { name: 'Register' }).click();
-    
-    // Verify successful registration by checking the URL
-    await expect(page).toHaveURL(/panel\/garage/);
+    await registration.submit();
+    await registration.checkRegistrationSuccess();
 });
 
 test('Registration fails with empty fields', async ({ page }) => {
-    // Navigate to the website and open the registration form
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Sign up' }).click();
+    const registration = new RegistrationPage(page);
 
-    // Ensure the Register button is disabled
-    await expect(page.getByRole('button', { name: 'Register' })).toBeDisabled();
+    await registration.navigate();
+    await registration.openRegistrationForm();
 
-    // Verify that all input fields are marked as invalid
-    await expect(page.locator('input[name="name"]')).toHaveClass(/ng-invalid/);
-    await expect(page.locator('input[name="lastName"]')).toHaveClass(/ng-invalid/);
-    await expect(page.locator('input[name="email"]')).toHaveClass(/ng-invalid/);
-    await expect(page.locator('input[name="password"]')).toHaveClass(/ng-invalid/);
-    await expect(page.locator('input[name="repeatPassword"]')).toHaveClass(/ng-invalid/);
+    await registration.checkRegisterButtonDisabled();
+
+    await registration.checkFieldInvalid('input[name="name"]');
+    await registration.checkFieldInvalid('input[name="lastName"]');
+    await registration.checkFieldInvalid('input[name="email"]');
+    await registration.checkFieldInvalid('input[name="password"]');
+    await registration.checkFieldInvalid('input[name="repeatPassword"]');
 });
 
 test('Registration fails with invalid email', async ({ page }) => {
-    // Navigate to the website and open the registration form
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Sign up' }).click();
+    const registration = new RegistrationPage(page);
+
+    await registration.navigate();
+    await registration.openRegistrationForm();
     
-    // Fill in valid data except for the email
-    await page.locator('input[name="name"]').fill('Iryna');
-    await page.locator('input[name="lastName"]').fill('Test');
-    await page.locator('input[name="email"]').fill('invalid-email');
-    await page.locator('input[name="password"]').fill('Test1234');
-    await page.locator('input[name="repeatPassword"]').fill('Test1234');
-
-    // Ensure the Register button is disabled
-    await expect(page.getByRole('button', { name: 'Register' })).toBeDisabled();
-
-    // Verify that the email field is marked as invalid
-    await expect(page.locator('input[name="email"]')).toHaveClass(/ng-invalid/);
+    await registration.fillRegistrationForm('Iryna', 'Test', 'invalid-email', 'Test1234', 'Test1234');
+    
+    await registration.checkRegisterButtonDisabled();
+    await registration.checkFieldInvalid('input[name="email"]');
 });
 
 test('Registration fails with short password', async ({ page }) => {
-    // Navigate to the website and open the registration form
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Sign up' }).click();
+    const registration = new RegistrationPage(page);
+
+    await registration.navigate();
+    await registration.openRegistrationForm();
     
-    // Fill in valid data except for the password (too short)
-    await page.locator('input[name="name"]').fill('Iryna');
-    await page.locator('input[name="lastName"]').fill('Test');
-    await page.locator('input[name="email"]').fill(`aqa-iryna+${Date.now()}@gmail.com`);
-    await page.locator('input[name="password"]').fill('T1');
-    await page.locator('input[name="repeatPassword"]').fill('T1');
+    const email = `aqa-iryna+${Date.now()}@gmail.com`;
+    await registration.fillRegistrationForm('Iryna', 'Test', email, 'T1', 'T1');
 
-    // Ensure the Register button is disabled
-    await expect(page.getByRole('button', { name: 'Register' })).toBeDisabled();
-
-    // Verify that the password field is marked as invalid
-    await expect(page.locator('input[name="password"]')).toHaveClass(/ng-invalid/);
+    await registration.checkRegisterButtonDisabled();
+    await registration.checkFieldInvalid('input[name="password"]');
 });
 
 test('Registration fails when passwords do not match', async ({ page }) => {
-    // Navigate to the website and open the registration form
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Sign up' }).click();
-    
-    // Fill in valid data except for mismatched passwords
-    await page.locator('input[name="name"]').fill('Iryna');
-    await page.locator('input[name="lastName"]').fill('Test');
-    await page.locator('input[name="email"]').fill(`aqa-iryna+${Date.now()}@gmail.com`);
-    await page.locator('input[name="password"]').fill('Test1234');
-    await page.locator('input[name="repeatPassword"]').fill('Qwerty123');
+    const registration = new RegistrationPage(page);
 
-    // Ensure the Register button is disabled (fix for previous failure)
-    await expect(page.getByRole('button', { name: 'Register' })).toBeDisabled();
+    await registration.navigate();
+    await registration.openRegistrationForm();
+    
+    const email = `aqa-iryna+${Date.now()}@gmail.com`;
+    await registration.fillRegistrationForm('Iryna', 'Test', email, 'Test1234', 'Qwerty123');
+
+    await registration.checkRegisterButtonDisabled();
 });
 
 test('Registration fails with short name', async ({ page }) => {
-    // Navigate to the website and open the registration form
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Sign up' }).click();
+    const registration = new RegistrationPage(page);
+
+    await registration.navigate();
+    await registration.openRegistrationForm();
     
-    // Fill in valid data except for a too short name
-    await page.locator('input[name="name"]').fill('I');
-    await page.locator('input[name="lastName"]').fill('RA');
-    await page.locator('input[name="email"]').fill(`aqa-iryna+${Date.now()}@gmail.com`);
-    await page.locator('input[name="password"]').fill('Qwerty123');
-    await page.locator('input[name="repeatPassword"]').fill('Qwerty123');
+    const email = `aqa-iryna+${Date.now()}@gmail.com`;
+    await registration.fillRegistrationForm('I', 'RA', email, 'Qwerty123', 'Qwerty123');
 
-    // Ensure the Register button is disabled
-    await expect(page.getByRole('button', { name: 'Register' })).toBeDisabled();
-
-    // Verify that the name field is marked as invalid
-    await expect(page.locator('input[name="name"]')).toHaveClass(/ng-invalid/);
+    await registration.checkRegisterButtonDisabled();
+    await registration.checkFieldInvalid('input[name="name"]');
 });
