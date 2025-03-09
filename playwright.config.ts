@@ -1,14 +1,17 @@
 import { defineConfig } from '@playwright/test';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export default defineConfig({
   use: {
-    baseURL: 'https://qauto.forstudy.space/',
+    baseURL: process.env.BASE_URL || 'https://qauto.forstudy.space/',
     httpCredentials: {
-      username: 'guest',
-      password: 'welcome2qauto',
+      username: process.env.USERNAME || 'guest',
+      password: process.env.PASSWORD || 'welcome2qauto',
     },
     browserName: 'chromium',
-    headless: false,  
+    headless: process.env.HEADLESS === 'true',
     viewport: { width: 1280, height: 720 },
   },
 });

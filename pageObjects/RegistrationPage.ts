@@ -8,7 +8,8 @@ export class RegistrationPage {
     }
 
     async navigate() {
-        await this.page.goto('/');
+        console.log("Navigating with auth in URL...");
+        await this.page.goto('https://guest:welcome2qauto@qauto.forstudy.space/');
     }
 
     async openRegistrationForm() {
